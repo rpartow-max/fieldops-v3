@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FieldOps - Work Order System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+  <!-- Role Selection Screen -->
+  <div id="role-screen" class="screen active">
+    <div class="role-bg-grid"></div>
+    <div class="role-container">
+      <div class="logo">
+        <div class="logo-mark"><span class="logo-bolt">⚡</span></div>
+        <h1>FieldOps</h1>
+        <p class="subtitle">Work Order Management System</p>
+      </div>
+      <p class="role-prompt">Select your role to continue</p>
+      <div class="role-cards">
+        <button class="role-card" onclick="selectRole('customer')">
+          <div class="role-card-accent customer-accent"></div>
+          <div class="role-card-inner">
+            <div class="role-icon-wrap customer-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div class="role-text">
+              <h2>Customer Portal</h2>
+              <p>Submit and track work order requests</p>
+            </div>
+            <span class="role-arrow">→</span>
+          </div>
+        </button>
+        <button class="role-card" onclick="selectRole('dispatcher')">
+          <div class="role-card-accent dispatcher-accent"></div>
+          <div class="role-card-inner">
+            <div class="role-icon-wrap dispatcher-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </div>
+            <div class="role-text">
+              <h2>Dispatcher Dashboard</h2>
+              <p>Manage and deploy work orders</p>
+            </div>
+            <span class="role-arrow">→</span>
+          </div>
+        </button>
+        <button class="role-card" onclick="selectRole('technician')">
+          <div class="role-card-accent technician-accent"></div>
+          <div class="role-card-inner">
+            <div class="role-icon-wrap technician-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            </div>
+            <div class="role-text">
+              <h2>Technician Portal</h2>
+              <p>View assigned jobs and update progress</p>
+            </div>
+            <span class="role-arrow">→</span>
+          </div>
+        </button>
+      </div>
+      <p class="role-footer">FieldOps v2.0 · Secure · Real-time</p>
+    </div>
+  </div>
+
+  <!-- Company Login Screen -->
+  <div id="company-login-screen" class="screen">
+    <div class="role-bg-grid"></div>
+    <div class="role-container">
+      <div class="logo">
+        <div class="logo-mark"><span class="logo-bolt">⚡</span></div>
+        <h1>FieldOps</h1>
+        <p class="subtitle">Customer Portal</p>
+      </div>
+      <p class="role-prompt">Sign in to your company account</p>
+      <div class="login-form-card">
+        <div class="form-group">
+          <label for="company-login-name">Company Name</label>
+          <input type="text" id="company-login-name" placeholder="e.g. Riverdale Properties" autocomplete="organization" />
+        </div>
+        <div class="form-group">
+          <label for="company-login-password">Password</label>
+          <input type="password" id="company-login-password" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter') companyLogin()" />
+        </div>
+        <p id="company-login-error" class="login-error"></p>
+        <button class="btn btn-primary" id="company-login-btn" onclick="companyLogin()" style="width:100%;margin-top:0.5rem;">Login →</button>
+        <button class="btn btn-secondary" onclick="goBack()" style="width:100%;margin-top:0.5rem;">← Back</button>
+      </div>
+      <p class="role-footer">Contact your service provider if you need access</p>
+    </div>
+  </div>
+
+  <!-- Customer Portal -->
+  <div id="customer-screen" class="screen">
+    <header class="header">
+      <div class="header-left">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <div class="header-brand">
+          <span class="brand-icon">⚡</span>
+          <span class="brand-text">FieldOps</span>
+        </div>
+      </div>
+      <div class="header-title">Customer Portal — <span id="customer-company-name" style="color:var(--accent)"></span></div>
+      <div class="header-right">
+        <button class="tab-btn active" onclick="switchCustomerTab('new-request')">New Request</button>
+        <button class="tab-btn" onclick="switchCustomerTab('my-orders')">My Orders</button>
+      </div>
+    </header>
+    <main class="main-content">
+      <div id="customer-new-request" class="tab-content active">
+        <div class="form-container">
+          <h2 class="section-title">Submit a Work Order Request</h2>
+          <p class="section-desc">Fill out the details below and our dispatch team will review and assign a technician.</p>
+          <form id="work-order-form" onsubmit="submitWorkOrder(event)">
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="wo-title">Job Title <span class="required">*</span></label>
+                <input type="text" id="wo-title" placeholder="e.g. HVAC Unit Not Cooling" required />
+              </div>
+              <div class="form-group full-width">
+                <label for="wo-description">Description <span class="required">*</span></label>
+                <textarea id="wo-description" rows="3" placeholder="Describe the issue or work needed..." required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="wo-service-type">Service Type</label>
+                <select id="wo-service-type">
+                  <option value="Repair">Repair</option>
+                  <option value="Inspection">Inspection</option>
+                  <option value="Maintenance">Maintenance</option>
+                  <option value="Emergency">Emergency</option>
+                  <option value="Installation">Installation</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="wo-priority">Priority</label>
+                <select id="wo-priority">
+                  <option value="Normal" selected>Normal</option>
+                  <option value="Low">Low</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                  <option value="Emergency">Emergency</option>
+                </select>
+              </div>
+              <div class="form-divider full-width"><span>Your Details</span></div>
+              <div class="form-group full-width">
+                <label for="wo-company">Company Name <span class="required">*</span></label>
+                <input type="text" id="wo-company" placeholder="e.g. Riverdale Properties" required />
+              </div>
+              <div class="form-group">
+                <label for="wo-customer-name">Your Name <span class="required">*</span></label>
+                <input type="text" id="wo-customer-name" placeholder="Full name" required />
+              </div>
+              <div class="form-group">
+                <label for="wo-customer-email">Email <span class="required">*</span></label>
+                <input type="email" id="wo-customer-email" placeholder="email@example.com" required />
+              </div>
+              <div class="form-group">
+                <label for="wo-customer-phone">Phone <span class="required">*</span></label>
+                <input type="tel" id="wo-customer-phone" placeholder="(555) 000-0000" required />
+              </div>
+              <div class="form-group">
+                <label for="wo-preferred-date">Preferred Date</label>
+                <input type="datetime-local" id="wo-preferred-date" />
+              </div>
+              <div class="form-group full-width">
+                <label for="wo-address">Site Address <span class="required">*</span></label>
+                <input type="text" id="wo-address" placeholder="Full street address" required />
+              </div>
+              <div class="form-divider full-width"><span>Attachments (Optional)</span></div>
+              <div class="form-group full-width">
+                <label>Photos / Documents</label>
+                <div class="file-upload-zone" id="customer-file-zone"
+                     onclick="document.getElementById('customer-file-input').click()"
+                     ondragover="handleDragOver(event)"
+                     ondrop="handleDrop(event, 'customer')">
+                  <input type="file" id="customer-file-input" multiple accept="image/*,.pdf,.doc,.docx"
+                         style="display:none" onchange="handleFileSelect(event, 'customer')" />
+                  <div class="file-upload-icon">📎</div>
+                  <p class="file-upload-text">Click to browse or drag &amp; drop files here</p>
+                  <p class="file-upload-hint">Images, PDFs, Word docs · Max 10MB each</p>
+                </div>
+                <div id="customer-file-list" class="file-list"></div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="reset" class="btn btn-secondary" onclick="clearFiles('customer')">Clear Form</button>
+              <button type="submit" class="btn btn-primary" id="submit-btn">Submit Request</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div id="customer-my-orders" class="tab-content">
+        <div class="orders-header">
+          <h2 class="section-title">My Work Orders</h2>
+          <button class="btn btn-small" onclick="loadCustomerOrders()">↻ Refresh</button>
+        </div>
+        <div id="customer-orders-list" class="orders-list">
+          <div class="loading">Loading your orders...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Dispatcher Dashboard -->
+  <div id="dispatcher-screen" class="screen">
+    <header class="header">
+      <div class="header-left">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <div class="header-brand">
+          <span class="brand-icon">⚡</span>
+          <span class="brand-text">FieldOps</span>
+        </div>
+      </div>
+      <div class="header-title">Dispatcher Dashboard</div>
+      <div class="header-right">
+        <button class="btn btn-primary btn-small" onclick="openNewWOModal('dispatcher')" style="white-space:nowrap;">+ New WO</button>
+        <div class="status-filters">
+          <button class="dispatcher-tab-btn filter-btn active" data-dispatchtab="orders" onclick="switchDispatcherTab('orders')">Orders</button>
+          <button class="dispatcher-tab-btn filter-btn" data-dispatchtab="companies" onclick="switchDispatcherTab('companies')">Companies</button>
+        </div>
+        <div class="status-filters" id="order-filters">
+          <button class="filter-btn active" data-filter="all" onclick="filterOrders('all')">All</button>
+          <button class="filter-btn" data-filter="new" onclick="filterOrders('new')">New</button>
+          <button class="filter-btn" data-filter="dispatched" onclick="filterOrders('dispatched')">Dispatched</button>
+          <button class="filter-btn" data-filter="in_progress" onclick="filterOrders('in_progress')">In Progress</button>
+          <button class="filter-btn" data-filter="completed" onclick="filterOrders('completed')">Completed</button>
+        </div>
+      </div>
+    </header>
+    <main class="dispatcher-layout">
+      <div id="dispatcher-tab-orders" class="dispatcher-tab-content active">
+        <div class="orders-panel">
+          <div class="panel-header">
+            <h3>Work Orders</h3>
+            <button class="btn btn-small" onclick="loadDispatcherOrders()">↻ Refresh</button>
+          </div>
+          <div id="dispatcher-orders-list" class="orders-list">
+            <div class="loading">Loading work orders...</div>
+          </div>
+        </div>
+        <div class="detail-panel" id="detail-panel">
+          <div class="empty-detail">
+            <div class="empty-icon">📋</div>
+            <p>Select a work order to view details</p>
+          </div>
+        </div>
+      </div>
+      <div id="dispatcher-tab-companies" class="dispatcher-tab-content" style="display:none;padding:1.5rem;max-width:700px;">
+        <h2 style="margin-bottom:1.5rem;">Company Accounts</h2>
+        <div class="detail-section" style="margin-bottom:1.5rem;">
+          <h3>Add New Company</h3>
+          <div class="form-grid" style="margin-top:0.75rem;">
+            <div class="form-group">
+              <label>Company Name <span class="required">*</span></label>
+              <input type="text" id="new-company-name" placeholder="e.g. Riverdale Properties" />
+            </div>
+            <div class="form-group">
+              <label>Password <span class="required">*</span></label>
+              <input type="text" id="new-company-password" placeholder="Set a password for this company" />
+            </div>
+            <div class="form-group full-width">
+              <label>Email (optional)</label>
+              <input type="email" id="new-company-email" placeholder="contact@company.com" />
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="addCompany()" style="margin-top:0.75rem;">+ Add Company</button>
+        </div>
+        <div class="detail-section">
+          <h3>Existing Companies</h3>
+          <div id="companies-list" style="margin-top:0.75rem;">
+            <div class="loading">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Technician Portal -->
+  <div id="technician-screen" class="screen">
+    <header class="header">
+      <div class="header-left">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <div class="header-brand">
+          <span class="brand-icon">⚡</span>
+          <span class="brand-text">FieldOps</span>
+        </div>
+      </div>
+      <div class="header-title">Technician Portal</div>
+      <div class="header-right">
+        <button class="btn btn-primary btn-small" onclick="openNewWOModal('technician')" style="white-space:nowrap;margin-right:0.5rem;">+ New WO</button>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <label style="font-size:0.8rem;color:var(--text-muted);white-space:nowrap;">Logged in as:</label>
+          <select id="tech-identity-select" onchange="onTechIdentityChange()" class="tech-identity-select">
+            <option value="">-- Select Name --</option>
+          </select>
+        </div>
+      </div>
+    </header>
+    <main class="dispatcher-layout">
+      <div class="orders-panel">
+        <div class="panel-header">
+          <h3>My Assigned Jobs</h3>
+          <button class="btn btn-small" onclick="loadTechOrders()">↻ Refresh</button>
+        </div>
+        <div class="tech-status-filters">
+          <button class="filter-btn active" data-techfilter="all" onclick="filterTechOrders('all')">All</button>
+          <button class="filter-btn" data-techfilter="dispatched" onclick="filterTechOrders('dispatched')">Dispatched</button>
+          <button class="filter-btn" data-techfilter="in_progress" onclick="filterTechOrders('in_progress')">In Progress</button>
+          <button class="filter-btn" data-techfilter="completed" onclick="filterTechOrders('completed')">Completed</button>
+        </div>
+        <div id="tech-orders-list" class="orders-list">
+          <div class="empty-state">Select your name above to see assigned jobs.</div>
+        </div>
+      </div>
+      <div class="detail-panel" id="tech-detail-panel">
+        <div class="empty-detail">
+          <div class="empty-icon">🔧</div>
+          <p>Select a job to view details and update progress</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- New Work Order Modal -->
+  <div id="new-wo-modal" class="modal-overlay" style="display:none;" onclick="closeNewWOModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">New Work Order</h2>
+          <p class="modal-sub" id="new-wo-role-label"></p>
+        </div>
+        <button class="modal-close" onclick="closeNewWOModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="nwo-title">Job Title <span class="required">*</span></label>
+            <input type="text" id="nwo-title" placeholder="e.g. Boiler Leak – Unit 3B" />
+          </div>
+          <div class="form-group full-width">
+            <label for="nwo-description">Description <span class="required">*</span></label>
+            <textarea id="nwo-description" rows="3" placeholder="Describe the issue or work needed..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="nwo-service-type">Service Type</label>
+            <select id="nwo-service-type">
+              <option value="Repair">Repair</option>
+              <option value="Inspection">Inspection</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Emergency">Emergency</option>
+              <option value="Installation">Installation</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="nwo-priority">Priority</label>
+            <select id="nwo-priority">
+              <option value="Normal" selected>Normal</option>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+              <option value="Urgent">Urgent</option>
+              <option value="Emergency">Emergency</option>
+            </select>
+          </div>
+          <div class="form-group full-width" id="nwo-assign-row">
+            <label for="nwo-assignee">Assign Technician</label>
+            <select id="nwo-assignee">
+              <option value="">-- Unassigned --</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label for="nwo-address">Site Address <span class="required">*</span></label>
+            <input type="text" id="nwo-address" placeholder="Full street address" />
+          </div>
+          <div class="form-group full-width">
+            <label for="nwo-company">Company Name <span class="required">*</span></label>
+            <input type="text" id="nwo-company" placeholder="e.g. Riverdale Properties" />
+          </div>
+          <div class="form-group">
+            <label for="nwo-customer-name">Contact Name <span class="required">*</span></label>
+            <input type="text" id="nwo-customer-name" placeholder="Full name" />
+          </div>
+          <div class="form-group">
+            <label for="nwo-customer-phone">Customer Phone</label>
+            <input type="tel" id="nwo-customer-phone" placeholder="(555) 000-0000" />
+          </div>
+          <div class="form-group">
+            <label for="nwo-customer-email">Customer Email</label>
+            <input type="email" id="nwo-customer-email" placeholder="email@example.com" />
+          </div>
+          <div class="form-group">
+            <label for="nwo-preferred-date">Preferred Date</label>
+            <input type="datetime-local" id="nwo-preferred-date" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeNewWOModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitNewWO()">⚡ Create Work Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signature Modal -->
+  <div id="sig-modal" class="modal-overlay" style="display:none;" onclick="closeSigModal(event)">
+    <div class="modal-box modal-box-sm" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Customer Signature</h2>
+          <p class="modal-sub">Sign below to confirm job completion</p>
+        </div>
+        <button class="modal-close" onclick="closeSigModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <canvas id="sig-canvas" width="460" height="180" style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:crosshair;display:block;width:100%;touch-action:none;"></canvas>
+        <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+          <button class="btn btn-secondary" onclick="clearSignature()">Clear</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSigModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSignature()">Save Signature</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
