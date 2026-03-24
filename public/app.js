@@ -2,7 +2,7 @@
    FieldOps - Work Order System Application v2.0
    ================================================ */
 
-const TECHNICIANS = ["Marcus Rivera", "Dana Okafor", "Sam Trellis", "Priya Nair"];
+const TECHNICIANS = ["Chris Ebelt", "Ramin Partow", "Ali Timori", "Luke Groski"];
 
 let currentRole = null;
 let currentFilter = "all";
