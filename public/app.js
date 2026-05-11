@@ -2,7 +2,7 @@
    FieldOps - Work Order System Application v2.0
    ================================================ */
 
-const TECHNICIANS = ["Chris Ebelt", "Ramin Partow", "Ali Timori", "Luke Groski"];
+// Technicians are loaded from the database — see loadTechnicians() and allTechnicians
 
 let currentRole = null;
 let currentFilter = "all";
@@ -38,9 +38,14 @@ function selectRole(role) {
   } else if (role === "dispatcher") {
     document.getElementById("dispatcher-screen").classList.add("active");
     loadDispatcherOrders();
+    loadTechnicians(); // populate allTechnicians for dispatch dropdowns
   } else if (role === "technician") {
     document.getElementById("technician-screen").classList.add("active");
-    populateTechIdentitySelect();
+    // Load from DB first, then populate the select
+    fetch('/api/technicians').then(function(r) { return r.json(); }).then(function(data) {
+      allTechnicians = data;
+      populateTechIdentitySelect();
+    }).catch(function() { populateTechIdentitySelect(); });
   }
 }
 
@@ -200,13 +205,14 @@ function switchDispatcherTab(tab) {
     c.classList.remove("active");
   });
   var el = document.getElementById("dispatcher-tab-" + tab);
-  el.style.display = tab === "companies" ? "block" : "flex";
+  el.style.display = (tab === "companies" || tab === "technicians") ? "block" : "flex";
   el.classList.add("active");
   // Show/hide order filters
   var orderFilters = document.getElementById("order-filters");
   if (orderFilters) orderFilters.style.display = tab === "orders" ? "" : "none";
   if (tab === "companies") loadCompanies();
   if (tab === "orders") loadDispatcherOrders();
+  if (tab === "technicians") loadTechnicians();
 }
 
 // ================================================
@@ -492,6 +498,7 @@ function renderDispatcherList() {
       <div class="order-card-top">
         <span class="order-id">${escapeHtml(o.id)}</span>
         <span class="badge badge-${o.status}">${formatStatus(o.status)}</span>
+        <button class="btn-delete-order" title="Delete work order" onclick="event.stopPropagation(); deleteOrder('${o.id}', '${escapeHtml(o.title).replace(/'/g, "\\'")}')">🗑</button>
       </div>
       <h4>${escapeHtml(o.title)}</h4>
       <div class="order-card-meta">
@@ -518,8 +525,8 @@ function renderOrderDetail(id) {
   const order = allOrders.find((o) => o.id === id);
   if (!order) return;
   const panel = document.getElementById("detail-panel");
-  const techOptions = TECHNICIANS.map(
-    (t) => `<option value="${escapeHtml(t)}" ${order.assignedTech === t ? "selected" : ""}>${escapeHtml(t)}</option>`
+  const techOptions = allTechnicians.map(
+    (t) => `<option value="${escapeHtml(t.name)}" ${order.assignedTech === t.name ? "selected" : ""}>${escapeHtml(t.name)}</option>`
   ).join("");
 
   const attachmentsHtml = order.attachments && order.attachments.length > 0 ? `
@@ -706,7 +713,7 @@ function populateTechIdentitySelect() {
   const sel = document.getElementById("tech-identity-select");
   if (!sel) return;
   sel.innerHTML = '<option value="">-- Select Name --</option>' +
-    TECHNICIANS.map((t) => `<option value="${escapeHtml(t)}" ${currentTech === t ? "selected" : ""}>${escapeHtml(t)}</option>`).join("");
+    allTechnicians.map((t) => `<option value="${escapeHtml(t.name)}" ${currentTech === t.name ? "selected" : ""}>${escapeHtml(t.name)}</option>`).join("");
 }
 
 function onTechIdentityChange() {
@@ -1024,6 +1031,111 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// ================================================
+// Technician Management
+// ================================================
+
+var allTechnicians = [];
+
+async function loadTechnicians() {
+  try {
+    var res = await fetch('/api/technicians');
+    if (!res.ok) throw new Error('Failed to load');
+    allTechnicians = await res.json();
+    renderTechnicianList();
+  } catch (e) {
+    var el = document.getElementById('technicians-list');
+    if (el) el.innerHTML = '<div class="empty-state">Could not load technicians. Please refresh.</div>';
+  }
+}
+
+function renderTechnicianList() {
+  var container = document.getElementById('technicians-list');
+  if (!container) return;
+
+  if (allTechnicians.length === 0) {
+    container.innerHTML = '<div class="empty-state">No technicians added yet. Add your first one above.</div>';
+    return;
+  }
+
+  // Group: employees first, then contractors
+  var employees = allTechnicians.filter(function(t) { return t.type === 'employee'; });
+  var contractors = allTechnicians.filter(function(t) { return t.type === 'contractor'; });
+  var sorted = employees.concat(contractors);
+
+  container.innerHTML = sorted.map(function(t) {
+    var icon = t.type === 'employee' ? '👤' : '🔧';
+    var badgeLabel = t.type === 'employee' ? 'Employee' : 'Contractor';
+    var metaParts = [];
+    if (t.trade) metaParts.push(t.trade);
+    if (t.phone) metaParts.push(t.phone);
+    if (t.email) metaParts.push(t.email);
+    var meta = metaParts.join(' · ') || 'No contact info';
+
+    return [
+      '<div class="tech-card">',
+      '  <div class="tech-card-left">',
+      '    <div class="tech-avatar ' + t.type + '">' + icon + '</div>',
+      '    <div>',
+      '      <div class="tech-name">' + escapeHtml(t.name) + '<span class="tech-badge ' + t.type + '">' + badgeLabel + '</span></div>',
+      '      <div class="tech-meta">' + escapeHtml(meta) + '</div>',
+      '    </div>',
+      '  </div>',
+      '  <button class="tech-remove-btn" onclick="removeTechnician(' + t.id + ', \'' + escapeHtml(t.name) + '\')">Remove</button>',
+      '</div>'
+    ].join('');
+  }).join('');
+}
+
+async function addTechnician() {
+  var name = document.getElementById('tech-name').value.trim();
+  var type = document.getElementById('tech-type').value;
+  var trade = document.getElementById('tech-trade').value.trim();
+  var phone = document.getElementById('tech-phone').value.trim();
+  var email = document.getElementById('tech-email').value.trim();
+  var errEl = document.getElementById('tech-form-error');
+
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent = 'Please enter a name.'; errEl.style.display = 'block'; return; }
+
+  try {
+    var res = await fetch('/api/technicians', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, type: type, trade: trade, phone: phone, email: email })
+    });
+    var data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Failed to add.'; errEl.style.display = 'block'; return; }
+
+    // Clear form
+    document.getElementById('tech-name').value = '';
+    document.getElementById('tech-trade').value = '';
+    document.getElementById('tech-phone').value = '';
+    document.getElementById('tech-email').value = '';
+    document.getElementById('tech-type').value = 'contractor';
+
+    allTechnicians.push(data);
+    renderTechnicianList();
+    if (typeof showToast === 'function') showToast(name + ' added!', 'success');
+  } catch (e) {
+    errEl.textContent = 'Error saving technician. Try again.';
+    errEl.style.display = 'block';
+  }
+}
+
+async function removeTechnician(id, name) {
+  if (!confirm('Remove ' + name + ' from the team?')) return;
+  try {
+    var res = await fetch('/api/technicians/' + id, { method: 'DELETE' });
+    if (!res.ok) throw new Error();
+    allTechnicians = allTechnicians.filter(function(t) { return t.id !== id; });
+    renderTechnicianList();
+    if (typeof showToast === 'function') showToast(name + ' removed.', 'success');
+  } catch (e) {
+    alert('Could not remove technician. Please try again.');
+  }
+}
+
 function showToast(message, type = "info") {
   const container = document.getElementById("toast-container");
   const toast = document.createElement("div");
@@ -1053,7 +1165,7 @@ function openNewWOModal(role) {
   if (role === "dispatcher") {
     assignRow.style.display = "";
     assignSel.innerHTML = '<option value="">-- Unassigned --</option>' +
-      TECHNICIANS.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+      allTechnicians.map(t => `<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join("");
   } else {
     assignRow.style.display = "none";
   }
@@ -1282,6 +1394,39 @@ function saveSignature() {
 }
 
 // ================================================
+// Delete Work Order
+// ================================================
+
+async function deleteOrder(id, title) {
+  if (!confirm(`Delete work order "${title}"?\n\nThis cannot be undone.`)) return;
+
+  const order = allOrders.find((o) => o.id === id);
+  if (!order || !order._recordId) {
+    showToast("Could not find work order to delete.", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/delete-order", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ _recordId: order._recordId })
+    });
+    if (!res.ok) throw new Error("Delete failed");
+
+    allOrders = allOrders.filter((o) => o.id !== id);
+    if (selectedOrderId === id) {
+      selectedOrderId = null;
+      document.getElementById("detail-panel").innerHTML = '<div class="empty-state" style="padding:2rem;">Select a work order to view details</div>';
+    }
+    renderDispatcherList();
+    showToast("Work order deleted.", "success");
+  } catch (err) {
+    showToast("Failed to delete work order. Please try again.", "error");
+  }
+}
+
+// ================================================
 
 window.selectRole = selectRole;
 window.goBack = goBack;
@@ -1290,6 +1435,7 @@ window.switchDispatcherTab = switchDispatcherTab;
 window.addCompany = addCompany;
 window.editCompanyPassword = editCompanyPassword;
 window.deleteCompany = deleteCompany;
+window.deleteOrder = deleteOrder;
 window.switchCustomerTab = switchCustomerTab;
 window.submitWorkOrder = submitWorkOrder;
 window.loadCustomerOrders = loadCustomerOrders;
