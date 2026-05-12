@@ -7,6 +7,27 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .btn-delete-order {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0 0.25rem;
+      margin-left: auto;
+      opacity: 0.4;
+      transition: opacity 0.15s;
+      line-height: 1;
+    }
+    .btn-delete-order:hover {
+      opacity: 1;
+    }
+    .order-card-top {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  </style>
 </head>
 <body>
 
@@ -219,6 +240,7 @@
         <div class="status-filters">
           <button class="dispatcher-tab-btn filter-btn active" data-dispatchtab="orders" onclick="switchDispatcherTab('orders')">Orders</button>
           <button class="dispatcher-tab-btn filter-btn" data-dispatchtab="companies" onclick="switchDispatcherTab('companies')">Companies</button>
+          <button class="dispatcher-tab-btn filter-btn" data-dispatchtab="technicians" onclick="switchDispatcherTab('technicians')">👷 Technicians</button>
         </div>
         <div class="status-filters" id="order-filters">
           <button class="filter-btn active" data-filter="all" onclick="filterOrders('all')">All</button>
@@ -247,6 +269,51 @@
           </div>
         </div>
       </div>
+      <!-- Technicians Tab Panel -->
+      <div id="dispatcher-tab-technicians" class="dispatcher-tab-content" style="display:none;padding:1.5rem;max-width:800px;">
+
+        <!-- Add Technician Form -->
+        <div class="tech-form-card">
+          <h3 class="section-heading">Add Technician / Crew Member</h3>
+          <div class="tech-form-grid">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" id="tech-name" placeholder="e.g. Carlos Rivera" />
+            </div>
+            <div class="form-group">
+              <label>Type *</label>
+              <select id="tech-type">
+                <option value="employee">🏢 Employee</option>
+                <option value="contractor" selected>🔧 Contractor</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Trade / Specialty</label>
+              <input type="text" id="tech-trade" placeholder="e.g. Electrical, Plumbing, HVAC, General" />
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="tel" id="tech-phone" placeholder="(555) 000-0000" />
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="tech-email" placeholder="tech@email.com" />
+            </div>
+          </div>
+          <button class="btn-primary" onclick="addTechnician()">+ Add Technician</button>
+          <div id="tech-form-error" class="error-msg" style="display:none;"></div>
+        </div>
+
+        <!-- Technician List -->
+        <div class="tech-list-section">
+          <h3 class="section-heading">Your Team</h3>
+          <div id="technicians-list">
+            <div class="loading-state">Loading technicians...</div>
+          </div>
+        </div>
+
+      </div>
+
       <div id="dispatcher-tab-companies" class="dispatcher-tab-content" style="display:none;padding:1.5rem;max-width:700px;">
         <h2 style="margin-bottom:1.5rem;">Company Accounts</h2>
         <div class="detail-section" style="margin-bottom:1.5rem;">

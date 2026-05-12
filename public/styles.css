@@ -1219,3 +1219,135 @@ select {
   font-size: 0.75rem;
   cursor: pointer;
 }
+
+/* ================================================
+   Technician Management
+   ================================================ */
+
+/* ---- Technician Form Card ---- */
+.tech-form-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+}
+
+.tech-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.section-heading {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text, #111827);
+  margin: 0 0 16px 0;
+}
+
+.error-msg {
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-primary:hover { background: #1d4ed8; }
+
+/* ---- Technician List ---- */
+.tech-list-section { margin-top: 8px; }
+
+.tech-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+}
+
+.tech-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tech-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Employee = blue, Contractor = orange */
+.tech-avatar.employee { background: #dbeafe; }
+.tech-avatar.contractor { background: #ffedd5; }
+
+.tech-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: #111827;
+}
+
+.tech-meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.tech-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: 6px;
+}
+
+.tech-badge.employee {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.tech-badge.contractor {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.tech-remove-btn {
+  background: none;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tech-remove-btn:hover { background: #fee2e2; }
+
+.loading-state {
+  text-align: center;
+  color: #9ca3af;
+  padding: 24px;
+  font-size: 14px;
+}
